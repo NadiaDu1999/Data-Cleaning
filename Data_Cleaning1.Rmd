@@ -1,0 +1,260 @@
+---
+title: "Data Wrangling - Project 1"
+author: "Nadia Du"
+date: "22 March 2023"
+output: github_document
+---
+
+## **Setup**
+
+```{r download the packages}
+library(readr)
+library(readxl)
+library(dplyr)
+library(magrittr)
+library(plyr)
+library(kableExtra)
+```
+
+
+## **Data Description**
+
+The obesity data set which has a purpose for approximation of obesity levels from people in Mexico, Peru and Columbia by depending on their nutritional habits and health conditions (Fabio and Alxis 2019). The data set was taken from ScienceDirect and includes 19 variables. The definitions of all variables are given below:
+
+-   __id__: Unique id for each row
+-   __Gender__: Gender
+-   __Age__: Age
+-   __Height__: Height (meters)
+-   __Weight__: Weight (kilograms)
+-   __family_history_with_overweight__: Do you have a family member struggled with overweight concerns?
+-   __FAVC__: Frequency of high caloric food consumption
+-   __FCVC__: Frequency of vegetable consumption
+-   __NCP__: The number of main meals in a day
+-   __CAEC__: Frequency of snack consumption
+-   __SMOKE__: Are you a smoker?
+-   __CH2O__: Daily water consumption
+-   __SCC__: Calorie counting
+-   __FAF__: Frequency of exercise in a week
+-   __TUE__: Screen time in a day (hours)
+-   __CALC__: Frequency of alcohol consumption
+-   __MTRANS__: Mode of transport
+-   __NObeyesdad__: Type of obesity
+-   __BMI__: Body mass index
+
+Reference source : https://www.sciencedirect.com/science/article/pii/S2352340919306985#sec1
+
+## **Read/Import Data**
+
+<!-- Read/Import the data into R, then save it as a data frame. You can use Base R functions or readr, xlsx, readxl, foreign, rvest packages for this purpose. In this step, you must provide the R codes with outputs (i.e. head of data set) and explain everything that you do in order to import/read/scrape the data set. You can provide the R codes with outputs using R chunks like this: -->
+
+```{r importing the data into R, echo=FALSE}
+
+OBST <- read_csv("ObesityDataSet.csv")
+OBST1 <- as.data.frame(OBST)
+class(OBST1)
+head(OBST1)
+```
+
+To begin with, there are five packages and three functions which are used to download the packages and set up working directory:
+
+```{r, echo=FALSE}
+na<- c("readr package", "dply package","plyr package", "kableExtra package", "magrittr package", "library()", "getwd()", "setwd()")
+no<- c("is used to provide read_csv() to help R having ability to read delimited files easily, which is csv file in this case (CRAN 2024).", "is also provided in order to be able to easily manipulate the data by using common function, such as filter or renaming (CRAN 2023).", " is used to round numbers to the specified number of digits (CRAN 2023).", "is an useful tool for creating tables in R markdown (CRAN 2024).", "is provided to improve readability of code and facilitate the creation of pipelines (CRAN 2022).", "is provided to download the packages. However, all packages I would like to use are already installed, otherwise I also need to installed the package before I download it by adding install.packages() (Statwonk 2016).", "represents the current working directory. In other words, this function shows the path file that we use recently (RDocumentation 2013).", "is used to set new path file that we would like to use. If we skip this step, the R-console will show that the file we choose is not in the current working directory (CRAN 2023).")
+
+s<- data.frame(cbind(na,no))
+colnames(s)<- c("Packages/Functions", "Definitions")
+
+s %>% kbl(caption = " ") %>%
+  kable_styling("striped", full_width = F)
+
+```
+
+However, in the second place, there are the processes of importing, converting the data, checking the type of data set and printing the output, respectively. 
+- First, the data is imported into R by using read_cvs(), name it as `OBST`.
+- as.data.frame() is,then, used to convert the file to data frame and save it as `OBST1`. 
+- class() is also provided in order to assure that the data is saved as a data frame.
+- The result is printed by using head() which demonstrate the first six observations of the data set (DigitalOcean 2022).
+
+
+
+## **Inspect and Understand**
+
+```{r checking the dimensions and structure of the data frame, echo=FALSE}
+dplyr::glimpse(OBST1)
+```
+`dplyr::glimpse(OBST1)` is provide in order to get an overview of the data. After running the code, the result is shown the number of rows, which are 2,111 rows, the number of columns (or variables) which are 19 columns and also the structure of the data set which are demonstrated that there are only two types of variables, numeric and character variables. Nevertheless, some variables (id, Gender, FCVC, CAEC, CH2O, FAF, TUE, CALC, MTRANS and NObeyesdad) are not in the correct format. This is because all these variables are actually categorical variable (not character variables), so they need to be converted into factor variable by using as.factor() which will be shown in the next step.
+
+However, dim() and str() functions can also be used to check the dimensions and structure of the data frame respectively (Hadley 2019).
+
+#### **Converting variables into the correct format**
+```{r converting charater variables into factor variables, echo=FALSE}
+OBST1$id <- as.factor(OBST1$id)
+OBST1$Gender <- as.factor(OBST1$Gender)
+OBST1$FCVC <- as.factor(OBST1$FCVC)
+OBST1$CAEC <- as.factor(OBST1$CAEC)
+OBST1$CH2O <- as.factor(OBST1$CH2O)
+OBST1$FAF <- as.factor(OBST1$FAF)
+OBST1$TUE <- as.factor(OBST1$TUE)
+OBST1$CALC <- as.factor(OBST1$CALC)
+OBST1$MTRANS <- as.factor(OBST1$MTRANS)
+OBST1$NObeyesdad <- as.factor(OBST1$NObeyesdad)
+```
+Data types of variable already were checked in the previous step, so in this step, `as.factor(OBST1$id)` is provided to apply proper type conversions of variables, from other type of variables into factor variable (Hadley et al. 2016). The character variables that have to be converted into factor variables are id, Gender, FCVC, CAEC, CH2O, FAF, TUE, CALC, MTRANS and NObeyesdad.
+
+However, for "yes/no data" in the family_history_with_overweight, FAVC, SMOKE and SCC column, it is left as character variable because this report does not involve with any logical operations.
+
+#### **Inspecting, renaming and rearranging the level of factor variables**
+Levels of factor variables were inspected by using levels() (Hadley et al. 2016). After the result was printed out, I have to rearrange some factor variables, which are FCVC, CAEC, CH2O, TUE, CALC and NObeyesdad, into proper order. The coding solution is as follows:
+
+```{r renaming and rearranging the level of factor variables, echo=FALSE}
+OBST1$FCVC <- factor(OBST$FCVC, level=c("never", "sometimes", "always"))
+OBST1$CAEC <- factor(OBST1$CAEC, level=c("no", "sometimes", "frequently", "always"))
+OBST1$CH2O <- factor(OBST1$CH2O, level=c("less than a liter", "between 1 and 2 l", "more than 2 l"), labels = c("less than a liter", "between 1 and 2", "more than 2"))
+OBST1$TUE <- factor(OBST1$TUE, level=c( "0 to 2", "3 to 5", ">5"))
+OBST1$CALC <- factor(OBST1$CALC, level=c("no", "sometimes", "frequently", "always"))
+OBST1$NObeyesdad <- factor(OBST1$NObeyesdad, levels=c("insufficient_weight", "normal_weight", "overweight-level_i", "overweight-level_ii", "obesity_type_i", "obesity_type_ii", "obesity_type_iii"))
+```
+- For FCVC variable(The frequency of vegetable consumption), for example, I would like to show that "never" is less frequent than "sometimes" and "always" respectively. So, `OBST1$FCVC <- factor(OBST$FCVC, level=c("never", "sometimes", "always"))` after I run this code, "never" would be firstly appeared in the R-console, then "sometimes" and "always". 
+- However, there are some typos in CH2O column, which are "between 1 and 2 l" and "more than 2 l". So, apart from changing the level of CH20 variable, labels() also need to be applied in order to rename the data set into the correct one, which are "between 1 and 2" and "more than 2". 
+- The output is given below:
+```{r, echo=FALSE}
+levels(OBST1$FCVC)
+levels(OBST1$CAEC)
+levels(OBST1$CH2O)
+levels(OBST1$TUE)
+levels(OBST1$CALC)
+levels(OBST1$NObeyesdad)
+```
+
+#### **Changing the column names**
+```{r, echo=FALSE}
+names(OBST1)[1] <- "ID"
+names(OBST1)[6] <- "FamilyOverweight"
+names(OBST1)[12] <- "Water"
+names(OBST1)[18] <- "ObeseType"
+
+colnames(OBST1)
+```
+- Column name were checked by using `colnames(OBST1)` (Statology 2022). 
+- After I printed out the output, I noticed that there are some column names that were not clear or did not match with any other column names. So, in order to rename the column, I used `names(OBST1)[1] <- "ID"`, which `OBST1` is a name of data frame. 
+- Then, 'The square brackets [ ] allow us to index both the rows and the columns of a data frame. We can index by position, name, or condition' (SSCC 2024). In this case, [1] is the position index of the column, because "id" is located in the first column.
+- "ID" is a new suitable name. The result was printed out by using `colnames(OBST1) `
+
+#### **Specifying the number of decimal places**
+
+```{r specifying the number of demical palce, echo=FALSE}
+OBST1$BMI <- as.numeric(OBST1$BMI) %>% round(digits = 2)
+
+head(OBST1$BMI)
+
+summary(OBST1$BMI)
+```
+
+
+- After I inspected the data in the data set, I also noticed that BMI which is numerical variables is calculated in to five decimal places which is quite long. So `round(digits = 2)` is provided to truncate the values in the decimal places from five decimal places to two decimal places (Statology, 2021). This also benefits when statistical data is required. `head(OBST1$BMI)` is used to present the output (DigitalOcean 2022).
+- As an example above, `summary(OBST1$BMI)` is provided to produce statistical result (R Documentation 2024), such as mean or median. Apparently, it is easy to understand when the decimal places are truncated to two places.
+
+
+## **Subsetting**
+```{r, echo=FALSE}
+OBST_head <- head(OBST1, n=10)
+OBST_head
+```
+
+#### **Excluding missing values**
+```{r, echo=FALSE}
+is.na(OBST_head$ObeseType)
+OBST_head_cleaned <- OBST_head %>% filter(ObeseType != ' ')
+is.na(OBST_head_cleaned$ObeseType)
+```
+#### **create matrix**
+```{r, echo=FALSE}
+OBST_mt <- as.matrix(OBST_head_cleaned)
+print(OBST_mt)
+```
+
+```{r, echo=FALSE}
+class(OBST_mt)
+```
+
+```{r, echo=FALSE}
+c("is.matrix"    = is.matrix(OBST_mt),
+  "is.vector"    = is.vector(OBST_mt),
+  "is.numeric"   = is.numeric(OBST_mt),
+  "is.integer"   = is.integer(OBST_mt),
+  "is.logical"   = is.logical(OBST_mt),
+  "is.character" = is.character(OBST_mt))
+```
+
+- Firstly, the first ten observations in the data set were selected by using `head(OBST1, n=10)` and I named it as `OBST_head`. However, there are some missing values in the ObeseType column using `is.na(OBST_head$ObeseType)`. So, before I create matrix, all missing values need to be removed using `OBST_head_cleaned <- OBST_head %>% filter(ObeseType != ' ')`. After cleaning the data, I named it as `OBST_head_cleaned `which is ready for creating the matrix.
+- Then, the matrix was created using `as.matrix(OBST_head_cleaned)`, named it as `OBST_mt`
+- After that, `class(OBST_mt)` were also provided to check class attribute of matrix (Software Carpentry 2024) and it is matrix/array in this case.
+- is.*() is also given to check the object as a specific type. However,the result is showed that matrix structure is converted to a character matrix. This is because all elements within a matrix must be the same data type, otherwise the values will be changed as the hierarchy for coercion rules, is: logical < integer < numeric < character (DataCamp 2015).
+
+
+## **Create a new Data Frame**
+
+```{r, echo=FALSE}
+Age <- c(30, 40, 60, 75, 30, 40, 60, 75, 55, 23)
+Overall_health <- c("Very good", "Good","Excellent","Very good","Fair","Very Good","Fair", "Fair","Excellent","Good")
+df <- data_frame(Age = c(30, 40, 60, 75, 30, 40, 60, 75, 55, 23), Overall_health = c("Very good", "Good","Excellent","Very good","Fair","Very Good","Fair", "Fair","Excellent","Good"))
+df$Overall_health <- as.factor(df$Overall_health)
+Overall_health <- factor(Overall_health, levels = c("Fair", "Good", "Very Good", "Excellent"), ordered = TRUE)
+levels(Overall_health)
+Sleep_hours <- c(6.1, 5.9, 7.7, 7.6, 6.4, 5.5, 6, 8.7, 8, 6)
+df1 <- cbind(df, Sleep_hours)
+attributes(df1)
+dim(df1)
+kable(df1, align = "crc") %>%
+kable_styling("striped", full_width = F)
+```
+
+- Using data_frame() to generate a new data frame from scratch with one integer variable, which is `Age` , one ordinal variable, which is `Overall_health` and ten observations. The new data frame is named `df`
+- Overall_health used to be character variable, so it needs to be factorized using `as.factor(df$Overall_health)`.
+- This factor variable(`Overall_health`) also have to be rearranged into the correct arrangement, which is Fair, Good, Very Good and Excellent respectively. Using levels(`Overall_health`) to make sure the levels has already changed.
+- A new variable called `Sleep_hours` is generated and added to the data frame using cbind(`df, Sleep_hours`)
+- The attributes and dimensions of the resulting data frame was checked using `attributes(df1)` and `dim(df1)` respectively. To sum up, there are three columns, ten rows and class of this data set is represented as a data frame.
+- The output of final data frame is given above using `kable(df1, align = "crc") %>%
+kable_styling("striped", full_width = F)` to create the table in order to make a good presentaton and easy to understand.
+
+
+## **References**
+
+CRAN (The Comprehensive R Archive Network) (2022) _magrittr: A Forward-Pipe Operator for R_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/magrittr/index.html
+
+CRAN (The Comprehensive R Archive Network) (2023a) _dplyr: A Grammar of Data Manipulation_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/dplyr/index.html
+
+CRAN (The Comprehensive R Archive Network) (2023b) _File system navigation in R_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/TreeTools/vignettes/filesystem-navigation.html
+
+CRAN (The Comprehensive R Archive Network) (2023c) _plyr: Tools for Splitting, Applying and Combining Data_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/plyr/index.html
+
+CRAN (The Comprehensive R Archive Network) (2024a) _kableExtra: Construct Complex Table with 'kable' and Pipe Syntax_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/kableExtra/index.html
+
+CRAN (The Comprehensive R Archive Network) (2024b) _readr: Read Rectangular Text Data_, CRAN website, accessed 22 March 2024. https://cran.r-project.org/web/packages/readr/index.html
+
+DataCamp (2015) _Coerce it | R_, DataCamp website, accessed 21 March 2024. https://campus.datacamp.com/courses/introduction-to-r-for-finance/vectors-and-matrices?ex=3
+
+Prajwal CN (2022) _The head() and tail() function in R - Detailed Reference_, DigitalOcean website, accessed 21 March 2024. https://www.digitalocean.com/community/tutorials/head-and-tail-function-r#
+
+Fabio and Alexis (2019) _Dataset for estimation of obesity levels based on eating habits and physical condition in individuals from Colombia, Peru and Mexico_ [data set], ScienceDirect website, accessed 18 March 2024. https://www.sciencedirect.com/science/article/pii/S2352340919306985#sec1
+
+Hadley W, Mine CR and Garrett G (2016) _R for Data Science_, 2nd edn, O'Reilly Media, Inc.O'Reilly Media, Inc, California.
+
+Hadley W (2019), _Advanced R: Vectors_, 2nd edn, CRC Press, Florida.
+
+RDocumentation (2013a) _getwd: Get or Set Working Directory_, RDocumentation website, accessed 22 March 2024. https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/getwd
+
+RDocumentation (2013b) _summary: Object Summaries_, RDocumentation website, accessed 24 March 2024. https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/summary
+
+Software Carpentry (2024) _Data Types and Structures_, Software Carpentry website, accessed 24 March 2024. https://swcarpentry.github.io/r-novice-inflammation/13-supp-data-structures.html
+
+SSCC (Social Science Computing Cooperative) (2024) _Subsetting_, SSCC website, accessed 23 March 2024. https://sscc.wisc.edu/sscc/pubs/dwr/subsetting.html
+
+Statwonk (2016) _Library() in R_, Statwonk website, accessed 22 March 2024. https://statwonk.com/r-library-function.html
+
+Zach B (2021) _How to Round Numbers in R (5 Examples)_, Statology website, accessed 24 March 2024. https://www.statology.org/round-in-r/
+
+Zach B (2022) _How to Get Column Names in R (3 Methods)_, Statology website, accessed 22 March 2024. https://www.statology.org/r-get-column-names/
+
+<br>
+<br>
